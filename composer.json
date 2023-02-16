@@ -5,7 +5,12 @@
     "license": "MPL-2.0",
     "autoload": {
         "psr-4": {
-            "Glocurrency\\PolarisBankApiClientPhp\\": "src/"
+            "Glocurrency\\PolarisBank\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Glocurrency\\PolarisBank\\Tests\\": "tests/"
         }
     },
     "authors": [

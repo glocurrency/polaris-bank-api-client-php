@@ -1,6 +1,6 @@
 <?php
 
-namespace GloCurrency\PolarisBank\Interfaces;
+namespace Glocurrency\PolarisBank\Interfaces;
 
 /**
  * Represents a bank transaction request.
