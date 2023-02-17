@@ -2,51 +2,51 @@
 
 namespace Glocurrency\PolarisBank\Models;
 
-use Spatie\DataTransferObject\Attributes\MapFrom;
 use BrokeYourBike\DataTransferObject\JsonResponse;
+use Spatie\DataTransferObject\Attributes\MapFrom;
 
 /**
- * Represents a transaction response from a payment provider
+ * Represents a transaction response from the PolarisBank API
  */
 class TransactionResponse extends JsonResponse
 {
+    /** @var string */
     public string $status;
-    public string $message;
-    public ?string $provider_response_code;
-    public ?string $provider;
-    public ?array $errors;
-    public ?string $error;
-    public ?array $provider_response;
-    public ?array $client_info;
 
-    #[MapFrom('data.provider_response.transaction_final_amount')]
+    /** @var string */
+    public string $message;
+
+    /** @var string */
+    public string $transactionRef;
+
+    /** @var string */
+    public string $requestRef;
+
+    #[MapFrom('data.amount')]
+    /** @var float */
     public float $amount;
 
-    #[MapFrom('data.provider_response.beneficiary_account_name')]
-    public string $beneficiaryName;
+    #[MapFrom('data.destination_account_number')]
+    /** @var string */
+    public string $recipientAccountNumber;
 
-    #[MapFrom('data.provider_response.beneficiary_account_number')]
-    public string $beneficiaryAccountNumber;
+    #[MapFrom('data.sender_account_number')]
+    /** @var string */
+    public string $senderAccountNumber;
 
-    #[MapFrom('data.provider_response.originator_account_number')]
-    public string $originatorAccountNumber;
+    #[MapFrom('data.description')]
+    /** @var string */
+    public string $description;
 
-    #[MapFrom('data.provider_response.narration')]
-    public string $narration;
-
-    #[MapFrom('data.provider_response.reference')]
-    public string $reference;
-
-    #[MapFrom('data.provider_response.payment_id')]
-    public string $paymentId;
-
-    public function __construct(array $data)
+    public function __construct(array $parameters)
     {
-        parent::__construct($data);
-
-        $this->message = $data['message'];
+        $this->status = $parameters['status'];
+        $this->message = $parameters['message'];
+        $this->transactionRef = $parameters['data']['transaction_reference'];
+        $this->requestRef = $parameters['data']['request_reference'];
+        $this->amount = $parameters['data']['amount'];
+        $this->recipientAccountNumber = $parameters['data']['destination_account_number'];
+        $this->senderAccountNumber = $parameters['data']['sender_account_number'];
+        $this->description = $parameters['data']['description'];
     }
-};
-
-
-
+}

@@ -13,6 +13,7 @@ use Glocurrency\PolarisBank\Models\FetchAccountBalanceResponse;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
+use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 
 class Client implements HttpClientInterface
 {
@@ -110,5 +111,24 @@ class Client implements HttpClientInterface
         $response = $this->sendRequest(HttpMethodEnum::GET, $uri);
 
         return new FetchAccountBalanceResponse($response);
+    }
+
+    public function sendDomesticTransaction($amount, $recipientAccountNumber, $senderAccountNumber, $description)
+    {
+        $uri = $this->resolveUri('/transactions/domestic');
+
+        $requestRef = uniqid();
+
+        $requestData = [
+            'amount' => $amount,
+            'destination_account' => $recipientAccountNumber,
+            'sender_account_number' => $senderAccountNumber,
+            'description' => $description,
+            'request_ref' => $requestRef
+        ];
+
+        $response = $this->sendRequest(HttpMethodEnum::POST, $uri, $requestData);
+
+        return $this->handleResponse($response);
     }
 }
