@@ -16,6 +16,7 @@ use Psr\SimpleCache\CacheInterface;
 use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 use Glocurrency\PolarisBank\Factories\HttpClientFactory;
 use GuzzleHttp\Client as GuzzleClient;
+use Glocurrency\PolarisBank\Models\FetchAuthTokenResponse;
 
 class Client implements HttpClientInterface
 {
@@ -74,6 +75,29 @@ class Client implements HttpClientInterface
         return md5($data);
     }
 
+    public function FetchAuthTokenRaw(): FetchAuthTokenResponse
+    {
+        $options = [
+            \GuzzleHttp\RequestOptions::HEADERS => [
+                'Accept' => 'application/json',
+            ],
+            \GuzzleHttp\RequestOptions::FORM_PARAMS => [
+                'auth_provider' => 'auth_provider',
+                'secure' => 'secure',
+                'client_id' => $this->config->getApiKey(),
+                'client_secret' => $this->config->getClientSecret(),
+            ],
+        ];
+
+        $response = $this->httpClient->request(
+            HttpMethodEnum::POST->value,
+            $this->config->getApiBaseUrl(),
+            $options
+        );
+
+        return new FetchAuthTokenResponse($response);
+    }
+
     public function getAuthToken()
     {
         $cacheKey = 'polaris_access_token';
@@ -94,6 +118,8 @@ class Client implements HttpClientInterface
                 'Content-Type' => 'application/x-www-form-urlencoded',
             ],
         ]);
+
+        
 
         $responseBody = json_decode($response->getBody(), true);
         $authToken = $responseBody['access_token'];

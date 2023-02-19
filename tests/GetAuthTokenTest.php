@@ -7,7 +7,7 @@ use Psr\Http\Message\ResponseInterface;
 
 class GetAuthTokenTest extends TestCase
 {
-    public function it_can_cache_and_return_auth_token()
+    public function returnAuthToken()
     {
         $mockedConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();
 
