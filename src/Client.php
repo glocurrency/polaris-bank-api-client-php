@@ -14,6 +14,8 @@ use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
 use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
+use Glocurrency\PolarisBank\Factories\HttpClientFactory;
+use GuzzleHttp\Client as GuzzleClient;
 
 class Client implements HttpClientInterface
 {
@@ -31,6 +33,16 @@ class Client implements HttpClientInterface
         if ($cache) {
             $this->setCache($cache);
         }
+    }
+
+    public function getConfig(): ConfigInterface
+    {
+        return $this->config;
+    }
+
+    public function getCache(): CacheInterface
+    {
+        return $this->cache;
     }
 
     public function setCache(CacheInterface $cache)
@@ -104,31 +116,74 @@ class Client implements HttpClientInterface
         return $responseData;
     }
 
-    public function fetchAccountBalance($accountNumber)
+    public function setHttpClientFactory(HttpClientFactory $httpClientFactory)
     {
-        $uri = $this->resolveUri("/accounts/balance/$accountNumber");
-
-        $response = $this->sendRequest(HttpMethodEnum::GET, $uri);
-
-        return new FetchAccountBalanceResponse($response);
+        $this->httpClientFactory = $httpClientFactory;
     }
 
-    public function sendDomesticTransaction($amount, $recipientAccountNumber, $senderAccountNumber, $description)
+    public function fetchAccountBalance(string $accountNumber): FetchAccountBalanceResponse
     {
-        $uri = $this->resolveUri('/transactions/domestic');
+        $uri = $this->config->getApiBaseUrl() . '/v2/transact';
 
-        $requestRef = uniqid();
+        $request = $this->requestFactory->createRequest('GET', $uri)
+            ->withHeader('Authorization', 'Bearer ' . $this->config->getApiKey())
+            ->withHeader('Content-Type', 'application/json')
+            ->withHeader('Accept', 'application/json')
+            ->withQueryParams(['account_number' => $accountNumber]);
 
-        $requestData = [
-            'amount' => $amount,
-            'destination_account' => $recipientAccountNumber,
-            'sender_account_number' => $senderAccountNumber,
-            'description' => $description,
-            'request_ref' => $requestRef
+        $response = $this->httpClient->sendRequest($request);
+        $responseData = json_decode($response->getBody()->getContents(), false);
+
+        return new FetchAccountBalanceResponse(
+            $responseData->status,
+            $responseData->message,
+            $responseData->data
+        );
+    }
+
+    public function sendDomesticTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
+    {
+        if($bankTransaction instanceof SourceModelInterface){
+            $this->setSourceModel($bankTransaction);
+        }
+
+        $response = $this->performRequest(HttpMethodEnum::POST, 'bankAccountFT', [
+            'amount' => $bankTransaction->getAmount(),
+            'destination_account' => $bankTransaction->getDestinationAccount(),
+            'currency' => $bankTransaction->getCurrencyCode(),
+            'destination_bank_code' => $bankTransaction->getDestinationBankCode(),
+            'request_ref' => $bankTransaction->getReference(),
+            'transaction_ref' => $bankTransaction->getTransactionRef(),
+            'description' => $bankTransaction->getDescription(),
+        ]);
+
+        return new TransactionResponse($response);
+    }
+
+     /**
+     * @param HttpMethodEnum $method
+     * @param string $uri
+     * @param array<mixed> $data
+     * @return ResponseInterface
+     */
+    private function performRequest(HttpMethodEnum $method, string $uri, array $data): ResponseInterface
+    {
+        $options = [
+            \GuzzleHttp\RequestOptions::HEADERS => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . $this->config->getApiKey(),
+                'Signature' => $this->config->getClientSecret(),
+                'secure' => $this->config->getSecure(),
+
+            ],
+            \GuzzleHttp\RequestOptions::JSON => $data,
         ];
 
-        $response = $this->sendRequest(HttpMethodEnum::POST, $uri, $requestData);
+        if ($this->getSourceModel()) {
+            $options[\BrokeYourBike\HasSourceModel\Enums\RequestOptions::SOURCE_MODEL] = $this->getSourceModel();
+        }
 
-        return $this->handleResponse($response);
+        $uri = (string) $this->resolveUriFor($this->config->getApiBaseUrl(), $uri);
+        return $this->httpClient->request($method->value, $uri, $options);
     }
 }

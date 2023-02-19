@@ -25,4 +25,6 @@ interface BankTransactionInterface
     public function getMobileNo(): string;
     public function getMeta(): array;
     public function getDetails(): ?array;
+    public function getDestinationAccount(): ?string;
+    public function getDestinationBankCode(): ?string;
 }
