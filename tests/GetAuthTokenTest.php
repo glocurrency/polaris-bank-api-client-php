@@ -7,6 +7,9 @@ use Psr\Http\Message\ResponseInterface;
 
 class GetAuthTokenTest extends TestCase
 {
+    private string $tokenValue = 'super-secure-token';
+
+    /** @test */
     public function returnAuthToken()
     {
         $mockedConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();

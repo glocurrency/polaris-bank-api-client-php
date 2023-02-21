@@ -9,6 +9,9 @@
         }
     },
     "autoload-dev": {
+        "classmap": [
+            "tests/TestCase.php"
+        ],
         "psr-4": {
             "Glocurrency\\PolarisBank\\Tests\\": "tests/"
         }
@@ -31,11 +34,11 @@
     },
     "require-dev": {
         "bamarni/composer-bin-plugin": "^1.8",
-        "phpunit/phpunit": "^10.0",
+        "phpunit/phpunit": "^9",
         "mockery/mockery": "^1.5",
         "nesbot/carbon": "^2.66"
     },
-    "version": "1.0.0",
+    "version": "0.0.1",
     "config": {
         "allow-plugins": {
             "bamarni/composer-bin-plugin": true

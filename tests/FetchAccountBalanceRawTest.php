@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 
 class FetchAccountBalanceRawTest extends TestCase
 {
+    /** @test */
     public function testFromJson()
     {
         $json = '{"status": "success", "message": "Balance fetched successfully", "data": {"available_balance": 1000.00, "ledger_balance": 2000.00}}';

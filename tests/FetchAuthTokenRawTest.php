@@ -11,6 +11,7 @@ use Glocurrency\PolarisBank\Models\FetchAuthTokenResponse;
 
 class FetchAuthTokenRawTest extends TestCase
 {
+    /** @test */
     public function testFetchAuthTokenResponseProperties()
     {
         $mockConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();

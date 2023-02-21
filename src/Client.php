@@ -26,6 +26,8 @@ class Client implements HttpClientInterface
     protected $client;
     protected $cache;
 
+    private int $ttlMarginInSeconds = 60;
+
     public function __construct(ConfigInterface $config, ClientInterface $client, CacheInterface $cache = null)
     {
         $this->config = $config;
@@ -44,6 +46,11 @@ class Client implements HttpClientInterface
     public function getCache(): CacheInterface
     {
         return $this->cache;
+    }
+
+    public function authTokenCacheKey(): string
+    {
+        return get_class($this) . ':authToken:';
     }
 
     public function setCache(CacheInterface $cache)
@@ -89,7 +96,7 @@ class Client implements HttpClientInterface
             ],
         ];
 
-        $response = $this->httpClient->request(
+        $response = $this->client->request(
             HttpMethodEnum::POST->value,
             $this->config->getApiBaseUrl(),
             $options
@@ -100,33 +107,23 @@ class Client implements HttpClientInterface
 
     public function getAuthToken()
     {
-        $cacheKey = 'polaris_access_token';
-        if ($this->cache->has($cacheKey)) {
-            return $this->cache->get($cacheKey);
+
+        if ($this->cache->has($this->authTokenCacheKey())) {
+            $cachedToken = $this->cache->get($this->authTokenCacheKey());
+            if (is_string($cachedToken)) {
+                return $cachedToken;
+            }
         }
 
-        $authData = [
-            'grant_type' => 'client_credentials',
-            'client_id' => $this->config->getApiKey(),
-            'client_secret' => $this->config->getClientSecret(),
-            'scope' => '',
-        ];
+        $response = $this->fetchAuthTokenRaw();
 
-        $response = $this->httpClient->request('POST', '/auth/token', [
-            'form_params' => $authData,
-            'headers' => [
-                'Content-Type' => 'application/x-www-form-urlencoded',
-            ],
-        ]);
+        $this->cache->set(
+            $this->authTokenCacheKey(),
+            $response->accessToken,
+            (int) $response->expiresIn - $this->ttlMarginInSeconds
+        );
 
-        
-
-        $responseBody = json_decode($response->getBody(), true);
-        $authToken = $responseBody['access_token'];
-
-        $this->cache->set($cacheKey, $authToken, $responseBody['expires_in'] - 60);
-
-        return $authToken;
+        return $response->accessToken;
     }
 
     protected function handleResponse(ResponseInterface $response)
