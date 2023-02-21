@@ -1,5 +1,5 @@
 {
-    "name": "access-bank-api-client",
+    "name": "polaris-bank-api-client",
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/workspace",

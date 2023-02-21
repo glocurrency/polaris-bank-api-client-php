@@ -17,6 +17,7 @@ use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 use Glocurrency\PolarisBank\Factories\HttpClientFactory;
 use GuzzleHttp\Client as GuzzleClient;
 use Glocurrency\PolarisBank\Models\FetchAuthTokenResponse;
+use Glocurrency\PolarisBank\Models\TransactionResponse;
 
 class Client implements HttpClientInterface
 {
@@ -173,12 +174,13 @@ class Client implements HttpClientInterface
         $response = $this->performRequest(HttpMethodEnum::POST, 'bankAccountFT', [
             'amount' => $bankTransaction->getAmount(),
             'destination_account' => $bankTransaction->getDestinationAccount(),
-            'currency' => $bankTransaction->getCurrencyCode(),
             'destination_bank_code' => $bankTransaction->getDestinationBankCode(),
-            'request_ref' => $bankTransaction->getReference(),
+            'request_ref' => $bankTransaction->getRequestRef(),
             'transaction_ref' => $bankTransaction->getTransactionRef(),
-            'description' => $bankTransaction->getDescription(),
+            'description' => $bankTransaction->getTransactionDesc(),
         ]);
+
+        // $responseBody = json_decode($response->getBody(), true);
 
         return new TransactionResponse($response);
     }
@@ -194,10 +196,8 @@ class Client implements HttpClientInterface
         $options = [
             \GuzzleHttp\RequestOptions::HEADERS => [
                 'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->config->getApiKey(),
-                'Signature' => $this->config->getClientSecret(),
-                'secure' => $this->config->getSecure(),
-
+                'Authorization' => 'Bearer ' . $this->config->getClientSecret(),
+                'Ocp-Apim-Subscription-Key' => $this->config->getSignature()
             ],
             \GuzzleHttp\RequestOptions::JSON => $data,
         ];
@@ -207,6 +207,6 @@ class Client implements HttpClientInterface
         }
 
         $uri = (string) $this->resolveUriFor($this->config->getApiBaseUrl(), $uri);
-        return $this->httpClient->request($method->value, $uri, $options);
+        return $this->client->request($method->value, $uri, $options);
     }
 }
