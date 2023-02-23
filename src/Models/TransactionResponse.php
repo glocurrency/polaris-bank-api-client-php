@@ -22,6 +22,12 @@ class TransactionResponse extends JsonResponse
     #[MapFrom('data.error')]
     public ?string $transactionError;
 
+    #[MapFrom('data.provider_response.reference')]
+    public ?string $reference;
+
+    #[MapFrom('data.provider_response.payment_id')]
+    public ?string $paymentId;
+
     #[MapFrom('data.provider_response')]
     public ?string $transactionProviderResponse;
 }

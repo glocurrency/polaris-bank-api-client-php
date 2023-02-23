@@ -27,9 +27,10 @@ class Client implements HttpClientInterface
     protected $config;
     protected $client;
     protected $cache;
-
+    
     private int $ttlMarginInSeconds = 60;
 
+    private string $reference;
     public function __construct(ConfigInterface $config, ClientInterface $client, CacheInterface $cache = null)
     {
         $this->config = $config;
@@ -190,6 +191,17 @@ class Client implements HttpClientInterface
             $response->getProtocolVersion(),
             $response->getReasonPhrase()
         );
+    }
+
+    public function fetchDomesticTransactionStatusRaw(string $paymentId, string $reference): TransactionResponse
+    {
+        $response = $this->performRequest(HttpMethodEnum::POST, 'getBankFTStatus', [
+            'paymentId' => $paymentId,
+            'reference' => $reference,
+            'appId' => $this->config->getAppId(),
+        ]);
+
+        return new TransactionResponse($response);
     }
 
     public function sendDomesticTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
