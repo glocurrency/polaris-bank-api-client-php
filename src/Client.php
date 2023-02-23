@@ -193,12 +193,19 @@ class Client implements HttpClientInterface
         );
     }
 
-    public function fetchDomesticTransactionStatusRaw(string $paymentId, string $reference): TransactionResponse
+    public function fetchDomesticTransactionStatusRaw(BankTransactionInterface $bankTransaction): TransactionResponse
     {
-        $response = $this->performRequest(HttpMethodEnum::POST, 'getBankFTStatus', [
-            'paymentId' => $paymentId,
-            'reference' => $reference,
-            'appId' => $this->config->getAppId(),
+        if($bankTransaction instanceof SourceModelInterface){
+            $this->setSourceModel($bankTransaction);
+        }
+
+        $response = $this->performRequest(HttpMethodEnum::POST, 'bankAccountFT', [
+            'amount' => $bankTransaction->getAmount(),
+            'destination_account' => $bankTransaction->getDestinationAccount(),
+            'destination_bank_code' => $bankTransaction->getDestinationBankCode(),
+            'request_ref' => $bankTransaction->getRequestRef(),
+            'transaction_ref' => $bankTransaction->getTransactionRef(),
+            'description' => $bankTransaction->getTransactionDesc(),
         ]);
 
         return new TransactionResponse($response);
