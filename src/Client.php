@@ -10,6 +10,7 @@ use BrokeYourBike\HasSourceModel\SourceModelInterface;
 use BrokeYourBike\ResolveUri\ResolveUriTrait;
 use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Models\FetchAccountBalanceResponse;
+use Glocurrency\PolarisBank\Models\FetchBankAccountNameResponse;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -36,7 +37,7 @@ class Client implements HttpClientInterface
 
         if ($cache) {
             $this->setCache($cache);
-        }
+        };
     }
 
     public function getConfig(): ConfigInterface
@@ -162,6 +163,32 @@ class Client implements HttpClientInterface
             $responseData->status,
             $responseData->message,
             $responseData->data
+        );
+    }
+
+    public function fetchDomesticBankAccountNameRaw(string $requestRef, string $accountNumber): ResponseInterface
+    {
+        $url = $this->config->getBaseUrl() . '/retail/account/resolve/account-number';
+        $headers = $this->getRequestHeaders();
+        $payload = json_encode([
+            'requestRef' => $requestRef,
+            'accountNumber' => $accountNumber,
+        ]);
+
+        // Make the HTTP request and get the response
+        $httpClient = $this->getHttpClient();
+        $response = $httpClient->request(HttpMethodEnum::POST, $url, [
+            'headers' => $headers,
+            'body' => $payload,
+        ]);
+
+        // Return the response object
+        return new Response(
+            $response->getStatusCode(),
+            $response->getHeaders(),
+            $response->getBody(),
+            $response->getProtocolVersion(),
+            $response->getReasonPhrase()
         );
     }
 
