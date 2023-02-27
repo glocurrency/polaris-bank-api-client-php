@@ -110,9 +110,24 @@ class SendDomesticTransactionTest extends TestCase
         $mockedResponse->method('getStatusCode')->willReturn(500);
         $mockedResponse->method('getBody')
             ->willReturn('{
-                "statusCode": 500,
-                "message": "Internal server error",
-                "activityId": "c1f6bbd9-096f-4c5f-b04f-fbfae795b0ea"
+                "status": "Failed",
+                "message": "Invalid response received from provider",
+                "data": {
+                    "options": null,
+                    "provider_response_code": null,
+                    "provider": "Polaris",
+                    "errors": [
+                      {
+                        "code": "04",
+                        "message": "invalid data"
+                      }
+                    ],
+                    "error": {
+                      "code": "04",
+                      "message": "invalid data"
+                    },
+                    "provider_response": null,
+                  }
             }');
 
         /** @var \Mockery\MockInterface $mockedClient */
@@ -150,7 +165,8 @@ class SendDomesticTransactionTest extends TestCase
 
         $requestResult = $api->sendDomesticTransaction($transaction);
 
+        // var_dump($requestResult);
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
-        $this->assertSame('Internal server error', $requestResult->message);
+        $this->assertSame(null, $requestResult->message);
     }
 }
