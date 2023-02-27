@@ -10,6 +10,7 @@ use BrokeYourBike\HasSourceModel\SourceModelInterface;
 use BrokeYourBike\ResolveUri\ResolveUriTrait;
 use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Models\FetchAccountBalanceResponse;
+use Glocurrency\PolarisBank\Models\FetchBankAccountNameResponse;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
@@ -24,15 +25,15 @@ class Client implements HttpClientInterface
     use HttpClientTrait, HasSourceModelTrait, ResolveUriTrait;
 
     protected $config;
-    protected $client;
+    protected $httpClient;
     protected $cache;
     
     private int $ttlMarginInSeconds = 60;
 
-    public function __construct(ConfigInterface $config, ClientInterface $client, CacheInterface $cache = null)
+    public function __construct(ConfigInterface $config, ClientInterface $httpClient, CacheInterface $cache = null)
     {
         $this->config = $config;
-        $this->client = $client;
+        $this->httpClient = $httpClient;
 
         if ($cache) {
             $this->setCache($cache);
@@ -97,7 +98,7 @@ class Client implements HttpClientInterface
             ],
         ];
 
-        $response = $this->client->request(
+        $response = $this->httpClient->request(
             HttpMethodEnum::POST->value,
             $this->config->getApiBaseUrl(),
             $options
@@ -251,6 +252,6 @@ class Client implements HttpClientInterface
         }
 
         $uri = (string) $this->resolveUriFor($this->config->getApiBaseUrl(), $uri);
-        return $this->client->request($method->value, $uri, $options);
+        return $this->httpClient->request($method->value, $uri, $options);
     }
 }
