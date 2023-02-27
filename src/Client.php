@@ -10,7 +10,6 @@ use BrokeYourBike\HasSourceModel\SourceModelInterface;
 use BrokeYourBike\ResolveUri\ResolveUriTrait;
 use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Models\FetchAccountBalanceResponse;
-use Glocurrency\PolarisBank\Models\FetchBankAccountNameResponse;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\SimpleCache\CacheInterface;
