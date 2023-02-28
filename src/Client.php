@@ -56,18 +56,6 @@ class Client implements HttpClientInterface
     }
 
     /** @link link-to-the-api-method-documentation */
-    public function generateSignature()
-    {
-        $requestRef = $this->getSourceModel() instanceof SourceModelInterface
-            ? $this->getSourceModel()->getRequestRef()
-            : uniqid();
-
-        $data = $requestRef . $this->config->getClientSecret();
-
-        return md5($data);
-    }
-
-    /** @link link-to-the-api-method-documentation */
     public function FetchAuthTokenRaw(): FetchAuthTokenResponse
     {
         $options = [
