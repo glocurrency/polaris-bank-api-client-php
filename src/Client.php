@@ -63,6 +63,7 @@ class Client implements HttpClientInterface
         return md5($data);
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function FetchAuthTokenRaw(): FetchAuthTokenResponse
     {
         $options = [

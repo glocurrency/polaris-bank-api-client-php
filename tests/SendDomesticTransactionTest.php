@@ -165,7 +165,6 @@ class SendDomesticTransactionTest extends TestCase
 
         $requestResult = $api->sendDomesticTransaction($transaction);
 
-        // var_dump($requestResult);
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
         $this->assertSame(null, $requestResult->message);
     }
