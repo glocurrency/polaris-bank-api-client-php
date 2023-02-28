@@ -37,21 +37,25 @@ class Client implements HttpClientInterface
         $this->cache = $cache;
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function getConfig(): ConfigInterface
     {
         return $this->config;
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function getCache(): CacheInterface
     {
         return $this->cache;
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function authTokenCacheKey(): string
     {
         return get_class($this) . ':authToken:';
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function generateSignature()
     {
         $requestRef = $this->getSourceModel() instanceof SourceModelInterface
@@ -87,6 +91,7 @@ class Client implements HttpClientInterface
         return new FetchAuthTokenResponse($response);
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function getAuthToken()
     {
 
@@ -108,6 +113,7 @@ class Client implements HttpClientInterface
         return $response->accessToken;
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function fetchDomesticTransactionStatusRaw(BankTransactionInterface $bankTransaction): TransactionResponse
     {
         if($bankTransaction instanceof SourceModelInterface){
@@ -151,6 +157,8 @@ class Client implements HttpClientInterface
      * @param array<mixed> $data
      * @return ResponseInterface
      */
+    
+    /** @link link-to-the-api-method-documentation */
     private function performRequest(HttpMethodEnum $method, string $uri, array $data): ResponseInterface
     {
         $options = [
