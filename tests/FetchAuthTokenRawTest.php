@@ -58,7 +58,6 @@ class FetchAuthTokenRawTest extends TestCase
          * @var CacheInterface $mockCache
          * */
         $api = new Client($mockConfig, $mockClient, $mockCache);
-        $api->setHttpClient($mockClient); // set the mockClient instance
         $requestResult = $api->fetchAuthTokenRaw();
 
         $this->assertInstanceOf(FetchAuthTokenResponse::class, $requestResult);
