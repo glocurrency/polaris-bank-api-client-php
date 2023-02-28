@@ -34,10 +34,7 @@ class Client implements HttpClientInterface
     {
         $this->config = $config;
         $this->httpClient = $httpClient;
-
-        if ($cache) {
-            $this->setCache($cache);
-        };
+        $this->cache = $cache;
     }
 
     public function getConfig(): ConfigInterface
@@ -53,24 +50,6 @@ class Client implements HttpClientInterface
     public function authTokenCacheKey(): string
     {
         return get_class($this) . ':authToken:';
-    }
-
-    public function setCache(CacheInterface $cache)
-    {
-        $this->cache = $cache;
-    }
-
-    public function sendRequest($method, $uri, $data = null, $headers = [])
-    {
-        $headers = array_merge([
-            'Content-Type' => 'application/json',
-            'Authorization' => 'Bearer ' . $this->config->getApiKey(),
-            'Signature' => $this->generateSignature(),
-        ], $headers);
-
-        $response = $this->httpClientSendRequest($method, $uri, $data, $headers);
-
-        return $this->handleResponse($response);
     }
 
     public function generateSignature()
@@ -128,24 +107,6 @@ class Client implements HttpClientInterface
         return $response->accessToken;
     }
 
-    protected function handleResponse(ResponseInterface $response)
-    {
-        $responseBody = (string) $response->getBody();
-        $responseData = json_decode($responseBody, true);
-
-        if ($response->getStatusCode() >= 400) {
-            $message = isset($responseData['message']) ? $responseData['message'] : 'Unknown error';
-            throw new \Exception($message, $response->getStatusCode());
-        }
-
-        return $responseData;
-    }
-
-    public function setHttpClientFactory(HttpClientFactory $httpClientFactory)
-    {
-        $this->httpClientFactory = $httpClientFactory;
-    }
-
     public function fetchAccountBalance(string $accountNumber): FetchAccountBalanceResponse
     {
         $uri = $this->config->getApiBaseUrl() . '/v2/transact';
@@ -156,39 +117,13 @@ class Client implements HttpClientInterface
             ->withHeader('Accept', 'application/json')
             ->withQueryParams(['account_number' => $accountNumber]);
 
-        $response = $this->httpClient->sendRequest($request);
+        $response = $this->httpClient->$request;
         $responseData = json_decode($response->getBody()->getContents(), false);
 
         return new FetchAccountBalanceResponse(
             $responseData->status,
             $responseData->message,
             $responseData->data
-        );
-    }
-
-    public function fetchDomesticBankAccountNameRaw(string $requestRef, string $accountNumber): ResponseInterface
-    {
-        $url = $this->config->getBaseUrl() . '/retail/account/resolve/account-number';
-        $headers = $this->getRequestHeaders();
-        $payload = json_encode([
-            'requestRef' => $requestRef,
-            'accountNumber' => $accountNumber,
-        ]);
-
-        // Make the HTTP request and get the response
-        $httpClient = $this->getHttpClient();
-        $response = $httpClient->request(HttpMethodEnum::POST, $url, [
-            'headers' => $headers,
-            'body' => $payload,
-        ]);
-
-        // Return the response object
-        return new Response(
-            $response->getStatusCode(),
-            $response->getHeaders(),
-            $response->getBody(),
-            $response->getProtocolVersion(),
-            $response->getReasonPhrase()
         );
     }
 
@@ -210,6 +145,7 @@ class Client implements HttpClientInterface
         return new TransactionResponse($response);
     }
 
+    /** @link link-to-the-api-method-documentation */
     public function sendDomesticTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
     {
         if($bankTransaction instanceof SourceModelInterface){
@@ -224,8 +160,6 @@ class Client implements HttpClientInterface
             'transaction_ref' => $bankTransaction->getTransactionRef(),
             'description' => $bankTransaction->getTransactionDesc(),
         ]);
-
-        // $responseBody = json_decode($response->getBody(), true);
 
         return new TransactionResponse($response);
     }
