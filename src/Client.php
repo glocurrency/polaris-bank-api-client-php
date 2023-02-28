@@ -107,26 +107,6 @@ class Client implements HttpClientInterface
         return $response->accessToken;
     }
 
-    public function fetchAccountBalance(string $accountNumber): FetchAccountBalanceResponse
-    {
-        $uri = $this->config->getApiBaseUrl() . '/v2/transact';
-
-        $request = $this->requestFactory->createRequest('GET', $uri)
-            ->withHeader('Authorization', 'Bearer ' . $this->config->getApiKey())
-            ->withHeader('Content-Type', 'application/json')
-            ->withHeader('Accept', 'application/json')
-            ->withQueryParams(['account_number' => $accountNumber]);
-
-        $response = $this->httpClient->$request;
-        $responseData = json_decode($response->getBody()->getContents(), false);
-
-        return new FetchAccountBalanceResponse(
-            $responseData->status,
-            $responseData->message,
-            $responseData->data
-        );
-    }
-
     public function fetchDomesticTransactionStatusRaw(BankTransactionInterface $bankTransaction): TransactionResponse
     {
         if($bankTransaction instanceof SourceModelInterface){
