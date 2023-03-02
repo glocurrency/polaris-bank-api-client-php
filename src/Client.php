@@ -47,55 +47,6 @@ class Client implements HttpClientInterface
         return $this->cache;
     }
 
-    public function authTokenCacheKey(): string
-    {
-        return get_class($this) . ':authToken:';
-    }
-
-    public function FetchAuthTokenRaw(): FetchAuthTokenResponse
-    {
-        $options = [
-            \GuzzleHttp\RequestOptions::HEADERS => [
-                'Accept' => 'application/json',
-            ],
-            \GuzzleHttp\RequestOptions::FORM_PARAMS => [
-                'auth_provider' => 'auth_provider',
-                'secure' => 'secure',
-                'client_id' => $this->config->getApiKey(),
-                'client_secret' => $this->config->getClientSecret(),
-            ],
-        ];
-
-        $response = $this->httpClient->request(
-            HttpMethodEnum::POST->value,
-            $this->config->getApiBaseUrl(),
-            $options
-        );
-
-        return new FetchAuthTokenResponse($response);
-    }
-
-    public function getAuthToken()
-    {
-
-        if ($this->cache->has($this->authTokenCacheKey())) {
-            $cachedToken = $this->cache->get($this->authTokenCacheKey());
-            if (is_string($cachedToken)) {
-                return $cachedToken;
-            }
-        }
-
-        $response = $this->fetchAuthTokenRaw();
-
-        $this->cache->set(
-            $this->authTokenCacheKey(),
-            $response->accessToken,
-            (int) $response->expiresIn - $this->ttlMarginInSeconds
-        );
-
-        return $response->accessToken;
-    }
-
     /** @link https://docs.openbanking.vulte.ng/#b3f5f0aa-e4ff-4719-bc29-65230e92ea3d */
     public function sendTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
     {
