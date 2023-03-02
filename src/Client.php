@@ -37,25 +37,21 @@ class Client implements HttpClientInterface
         $this->cache = $cache;
     }
 
-    /** @link link-to-the-api-method-documentation */
     public function getConfig(): ConfigInterface
     {
         return $this->config;
     }
 
-    /** @link link-to-the-api-method-documentation */
     public function getCache(): CacheInterface
     {
         return $this->cache;
     }
 
-    /** @link link-to-the-api-method-documentation */
     public function authTokenCacheKey(): string
     {
         return get_class($this) . ':authToken:';
     }
 
-    /** @link link-to-the-api-method-documentation */
     public function FetchAuthTokenRaw(): FetchAuthTokenResponse
     {
         $options = [
@@ -79,7 +75,6 @@ class Client implements HttpClientInterface
         return new FetchAuthTokenResponse($response);
     }
 
-    /** @link link-to-the-api-method-documentation */
     public function getAuthToken()
     {
 
@@ -101,41 +96,41 @@ class Client implements HttpClientInterface
         return $response->accessToken;
     }
 
-    /** @link link-to-the-api-method-documentation */
-    public function fetchDomesticTransactionStatusRaw(BankTransactionInterface $bankTransaction): TransactionResponse
+    /** @link https://docs.openbanking.vulte.ng/#b3f5f0aa-e4ff-4719-bc29-65230e92ea3d */
+    public function sendTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
     {
         if($bankTransaction instanceof SourceModelInterface){
             $this->setSourceModel($bankTransaction);
         }
 
-        $response = $this->performRequest(HttpMethodEnum::POST, 'bankAccountFT', [
-            'amount' => $bankTransaction->getAmount(),
-            'destination_account' => $bankTransaction->getDestinationAccount(),
-            'destination_bank_code' => $bankTransaction->getDestinationBankCode(),
-            'request_ref' => $bankTransaction->getRequestRef(),
-            'transaction_ref' => $bankTransaction->getTransactionRef(),
-            'description' => $bankTransaction->getTransactionDesc(),
-        ]);
+        $data = [
+            "request_ref" => $bankTransaction->getRequestRef(),
+            "request_type" => $bankTransaction->getRequestType(),
+            "auth" => [
+                "type" => $bankTransaction->getAuthType(),
+                "secure"=> $bankTransaction->getSecure(),
+                "auth_provider" => (string) $bankTransaction->getAuthProvider(),
+                "route_mode" => $bankTransaction->getRouteMode()
+            ],
+            "transaction" => [
+                "mock_mode" => $bankTransaction->getMockMode(),
+                "transaction_ref" => $bankTransaction->getTransactionRef(),
+                "transaction_desc"=> (string) $bankTransaction->getTransactionDesc(),
+                "transaction_ref_parent"=> $bankTransaction->getTransactionRefParent(),
+                "amount" => $bankTransaction->getAmount(),
+                "customer" => [
+                    "customer_ref" => $bankTransaction->getCustomerRef(),
+                    "firstname" => $bankTransaction->getFirstName(),
+                    "surname" => $bankTransaction->getSurname(),
+                    "email" => $bankTransaction->getEmail(),
+                    "mobile_no" => $bankTransaction->getMobileNo()
+                ],
+                "meta" => (array) $bankTransaction->getMeta(),
+                "details" => (array) $bankTransaction->getDetails()
+            ]
+        ];
 
-        return new TransactionResponse($response);
-    }
-
-    /** @link link-to-the-api-method-documentation */
-    public function sendDomesticTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
-    {
-        if($bankTransaction instanceof SourceModelInterface){
-            $this->setSourceModel($bankTransaction);
-        }
-
-        $response = $this->performRequest(HttpMethodEnum::POST, 'bankAccountFT', [
-            'amount' => $bankTransaction->getAmount(),
-            'destination_account' => $bankTransaction->getDestinationAccount(),
-            'destination_bank_code' => $bankTransaction->getDestinationBankCode(),
-            'request_ref' => $bankTransaction->getRequestRef(),
-            'transaction_ref' => $bankTransaction->getTransactionRef(),
-            'description' => $bankTransaction->getTransactionDesc(),
-        ]);
-
+        $response = $this->performRequest(HttpMethodEnum::POST, 'v1/transact', $data);
         return new TransactionResponse($response);
     }
 
@@ -145,15 +140,13 @@ class Client implements HttpClientInterface
      * @param array<mixed> $data
      * @return ResponseInterface
      */
-    
-    /** @link link-to-the-api-method-documentation */
     private function performRequest(HttpMethodEnum $method, string $uri, array $data): ResponseInterface
     {
         $options = [
             \GuzzleHttp\RequestOptions::HEADERS => [
                 'Accept' => 'application/json',
                 'Authorization' => 'Bearer ' . $this->config->getClientSecret(),
-                'Ocp-Apim-Subscription-Key' => $this->config->getSignature()
+                'Signature' => $this->config->getSignature()
             ],
             \GuzzleHttp\RequestOptions::JSON => $data,
         ];

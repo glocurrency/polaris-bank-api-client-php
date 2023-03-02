@@ -11,7 +11,5 @@ namespace Glocurrency\PolarisBank\Interfaces;
     public function getApiBaseUrl(): string;
     public function getApiKey(): string;
     public function getClientSecret(): string;
-    public function getAppId(): string;
-    public function getAuthToken(): string;
     public function getSignature(): string;
 }

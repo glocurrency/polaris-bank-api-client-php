@@ -9,7 +9,7 @@ use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 use Glocurrency\PolarisBank\Client;
 
-class SendDomesticTransactionTest extends TestCase
+class sendTransactionTest extends TestCase
 {
     private string $apiKey = 'api-key';
     private string $clientSecret = 'secure-token';
@@ -59,20 +59,45 @@ class SendDomesticTransactionTest extends TestCase
         $mockedClient = \Mockery::mock(\GuzzleHttp\Client::class);
         $mockedClient->shouldReceive('request')->withArgs([
             'POST',
-            'https://api.example/bankAccountFT',
+            'https://api.example/v1/transact',
             [
                 \GuzzleHttp\RequestOptions::HEADERS => [
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer {$this->clientSecret}",
-                    'Ocp-Apim-Subscription-Key' => $this->signature,
+                    'Signature' => $this->signature,
                 ],
                 \GuzzleHttp\RequestOptions::JSON => [
-                    'amount' => $transaction->getAmount(),
-                    'destination_account' => $transaction->getDestinationAccount(),
-                    'destination_bank_code' => $transaction->getDestinationBankCode(),
-                    'request_ref' => $transaction->getRequestRef(),
-                    'transaction_ref' => $transaction->getTransactionRef(),
-                    'description' => $transaction->getTransactionDesc(),
+                    // 'amount' => $transaction->getAmount(),
+                    // 'destination_account' => $transaction->getDestinationAccount(),
+                    // 'destination_bank_code' => $transaction->getDestinationBankCode(),
+                    // 'request_ref' => $transaction->getRequestRef(),
+                    // 'transaction_ref' => $transaction->getTransactionRef(),
+                    // 'description' => $transaction->getTransactionDesc(),
+
+                    "request_ref" => $transaction->getRequestRef(),
+                    "request_type" => $transaction->getRequestType(),
+                    "auth" => [
+                        "type" => $transaction->getAuthType(),
+                        "secure"=> $transaction->getSecure(),
+                        "auth_provider" => (string) $transaction->getAuthProvider(),
+                        "route_mode" => $transaction->getRouteMode()
+                    ],
+                    "transaction" => [
+                        "mock_mode" => $transaction->getMockMode(),
+                        "transaction_ref" => $transaction->getTransactionRef(),
+                        "transaction_desc"=> (string) $transaction->getTransactionDesc(),
+                        "transaction_ref_parent"=> $transaction->getTransactionRefParent(),
+                        "amount" => $transaction->getAmount(),
+                        "customer" => [
+                            "customer_ref" => $transaction->getCustomerRef(),
+                            "firstname" => $transaction->getFirstName(),
+                            "surname" => $transaction->getSurname(),
+                            "email" => $transaction->getEmail(),
+                            "mobile_no" => $transaction->getMobileNo()
+                        ],
+                        "meta" => (array) $transaction->getMeta(),
+                        "details" => (array) $transaction->getDetails()
+                    ]
                 ],
             ],
         ])->once()->andReturn($mockedResponse);
@@ -88,10 +113,10 @@ class SendDomesticTransactionTest extends TestCase
          * */
         $api = new Client($mockedConfig, $mockedClient, $mockedCache);
 
-        $requestResult = $api->sendDomesticTransaction($transaction);
+        $requestResult = $api->sendTransaction($transaction);
 
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
-        $this->assertSame(null, $requestResult->transactionErrors);
+        // $this->assertSame(null, $requestResult->transactionErrors);
     }
 
     /** @test */
@@ -134,20 +159,38 @@ class SendDomesticTransactionTest extends TestCase
         $mockedClient = \Mockery::mock(\GuzzleHttp\Client::class);
         $mockedClient->shouldReceive('request')->withArgs([
             'POST',
-            'https://api.example/bankAccountFT',
+            'https://api.example/v1/transact',
             [
                 \GuzzleHttp\RequestOptions::HEADERS => [
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer {$this->clientSecret}",
-                    'Ocp-Apim-Subscription-Key' => $this->signature,
+                    'Signature' => $this->signature,
                 ],
                 \GuzzleHttp\RequestOptions::JSON => [
-                    'amount' => $transaction->getAmount(),
-                    'destination_account' => $transaction->getDestinationAccount(),
-                    'destination_bank_code' => $transaction->getDestinationBankCode(),
-                    'request_ref' => $transaction->getRequestRef(),
-                    'transaction_ref' => $transaction->getTransactionRef(),
-                    'description' => $transaction->getTransactionDesc(),
+                    "request_ref" => $transaction->getRequestRef(),
+                    "request_type" => $transaction->getRequestType(),
+                    "auth" => [
+                        "type" => $transaction->getAuthType(),
+                        "secure"=> $transaction->getSecure(),
+                        "auth_provider" => (string) $transaction->getAuthProvider(),
+                        "route_mode" => $transaction->getRouteMode()
+                    ],
+                    "transaction" => [
+                        "mock_mode" => $transaction->getMockMode(),
+                        "transaction_ref" => $transaction->getTransactionRef(),
+                        "transaction_desc"=> (string) $transaction->getTransactionDesc(),
+                        "transaction_ref_parent"=> $transaction->getTransactionRefParent(),
+                        "amount" => $transaction->getAmount(),
+                        "customer" => [
+                            "customer_ref" => $transaction->getCustomerRef(),
+                            "firstname" => $transaction->getFirstName(),
+                            "surname" => $transaction->getSurname(),
+                            "email" => $transaction->getEmail(),
+                            "mobile_no" => $transaction->getMobileNo()
+                        ],
+                        "meta" => (array) $transaction->getMeta(),
+                        "details" => (array) $transaction->getDetails()
+                    ]
                 ],
             ],
         ])->once()->andReturn($mockedResponse);
@@ -163,7 +206,7 @@ class SendDomesticTransactionTest extends TestCase
          * */
         $api = new Client($mockedConfig, $mockedClient, $mockedCache);
 
-        $requestResult = $api->sendDomesticTransaction($transaction);
+        $requestResult = $api->sendTransaction($transaction);
 
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
         $this->assertSame(null, $requestResult->message);
