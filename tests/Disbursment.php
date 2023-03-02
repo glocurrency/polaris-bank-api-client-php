@@ -9,7 +9,7 @@ use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 use Glocurrency\PolarisBank\Client;
 
-class sendTransactionTest extends TestCase
+class DisbursmentTest extends TestCase
 {
     private string $apiKey = 'api-key';
     private string $clientSecret = 'secure-token';
@@ -31,28 +31,27 @@ class sendTransactionTest extends TestCase
         $mockedResponse->method('getStatusCode')->willReturn(200);
         $mockedResponse->method('getBody')
             ->willReturn('{
+                "status": "Successful",
+                "message": "Disburse successful",
                 "data": {
                     "provider_response_code": "00",
                     "provider": "Polaris",
-                    "provider_response": "A random transaction",
                     "errors": null,
                     "error": null,
                     "provider_response": {
-                        "destination_institution_code": "076",
-                        "beneficiary_account_name": "WALTER JAMES BLUNT",
-                        "beneficiary_account_number": "0099888876",
-                        "beneficiary_kyc_level": "",
+                        "destination_institution_code": "000016",
+                        "beneficiary_account_name": "GUY BRANDT THORNE",
+                        "beneficiary_account_number": "3056433222",
+                        "beneficiary_kyc_level": "3",
                         "originator_account_name": "",
-                        "originator_account_number": "0055666543",
-                        "originator_kyc_level": "",
-                        "narration": "A random transaction",
-                        "transaction_final_amount": 1000,
-                        "reference": "E9093F855F01461298E89CD043CEDB3C",
-                        "payment_id": "136FTTP200620003"
+                        "originator_account_number": "2001131256",
+                        "originator_kyc_level": "1",
+                        "narration": "USSD NIP Transfer from GUY THORNE",
+                        "transaction_final_amount": 1000490,
+                        "reference": "000012200225154318222333334432",
+                        "payment_id": "336FTTP5005901X1"
                     },
-                },
-                "message": "Success - Approved or successfully processed",
-                "success": "Transaction processed successfully",
+                }
             }');
 
         /** @var \Mockery\MockInterface $mockedClient */
@@ -109,7 +108,6 @@ class sendTransactionTest extends TestCase
         $requestResult = $api->sendTransaction($transaction);
 
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
-        // $this->assertSame(null, $requestResult->transactionErrors);
     }
 
     /** @test */

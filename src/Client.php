@@ -30,7 +30,7 @@ class Client implements HttpClientInterface
     
     private int $ttlMarginInSeconds = 60;
 
-    public function __construct(ConfigInterface $config, ClientInterface $httpClient, CacheInterface $cache = null)
+    public function __construct(ConfigInterface $config, ClientInterface $httpClient, CacheInterface $cache)
     {
         $this->config = $config;
         $this->httpClient = $httpClient;
