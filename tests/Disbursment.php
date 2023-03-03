@@ -13,19 +13,32 @@ class DisbursmentTest extends TestCase
 {
     private string $apiKey = 'api-key';
     private string $clientSecret = 'secure-token';
+    private string $requestRef = 'request_ref';
     private string $signature = 'signature';
 
+    public function generateSignature(): string
+    {
+        $signature = md5($this->requestRef . ';' . $this->clientSecret);
+        return $signature;
+    }
+    
     /** @test */
     public function it_can_prepare_request(): void
     {
         /** @var BankTransactionInterface $transaction */
         $transaction = $this->getMockBuilder(BankTransactionInterface::class)->getMock();
 
+        $mockedDisbursmentTest = $this->getMockBuilder(DisbursmentTest::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockedDisbursmentTest->method('generateSignature')
+            ->willReturn($this->signature);
+
         $mockedConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();
         $mockedConfig->method('getApiBaseUrl')->willReturn('https://api.example/');
         $mockedConfig->method('getApiKey')->willReturn($this->apiKey);
         $mockedConfig->method('getClientSecret')->willReturn($this->clientSecret);
-        $mockedConfig->method('getSignature')->willReturn($this->signature);
+        $mockedConfig->method('getSignature')->willReturn((string) $this->signature);
 
         $mockedResponse = $this->getMockBuilder(ResponseInterface::class)->getMock();
         $mockedResponse->method('getStatusCode')->willReturn(200);
@@ -54,6 +67,8 @@ class DisbursmentTest extends TestCase
                 }
             }');
 
+        $signature = $mockedDisbursmentTest->generateSignature();
+
         /** @var \Mockery\MockInterface $mockedClient */
         $mockedClient = \Mockery::mock(\GuzzleHttp\Client::class);
         $mockedClient->shouldReceive('request')->withArgs([
@@ -63,7 +78,7 @@ class DisbursmentTest extends TestCase
                 \GuzzleHttp\RequestOptions::HEADERS => [
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer {$this->clientSecret}",
-                    'Signature' => $this->signature,
+                    'Signature' => $signature,
                 ],
                 \GuzzleHttp\RequestOptions::JSON => [
                     "request_ref" => $transaction->getRequestRef(),
@@ -116,11 +131,17 @@ class DisbursmentTest extends TestCase
         /** @var BankTransactionInterface $transaction */
         $transaction = $this->getMockBuilder(BankTransactionInterface::class)->getMock();
 
+        $mockedDisbursmentTest = $this->getMockBuilder(DisbursmentTest::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockedDisbursmentTest->method('generateSignature')
+            ->willReturn($this->signature);
+
         $mockedConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();
         $mockedConfig->method('getApiBaseUrl')->willReturn('https://api.example/');
         $mockedConfig->method('getApiKey')->willReturn($this->apiKey);
         $mockedConfig->method('getClientSecret')->willReturn($this->clientSecret);
-        $mockedConfig->method('getSignature')->willReturn($this->signature);
+        $mockedConfig->method('getSignature')->willReturn((string) $this->signature);
 
         $mockedResponse = $this->getMockBuilder(ResponseInterface::class)->getMock();
         $mockedResponse->method('getStatusCode')->willReturn(500);
@@ -146,6 +167,8 @@ class DisbursmentTest extends TestCase
                   }
             }');
 
+        $signature = $mockedDisbursmentTest->generateSignature();
+
         /** @var \Mockery\MockInterface $mockedClient */
         $mockedClient = \Mockery::mock(\GuzzleHttp\Client::class);
         $mockedClient->shouldReceive('request')->withArgs([
@@ -155,7 +178,7 @@ class DisbursmentTest extends TestCase
                 \GuzzleHttp\RequestOptions::HEADERS => [
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer {$this->clientSecret}",
-                    'Signature' => $this->signature,
+                    'Signature' => $signature,
                 ],
                 \GuzzleHttp\RequestOptions::JSON => [
                     "request_ref" => $transaction->getRequestRef(),

@@ -10,11 +10,18 @@ use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
 use Glocurrency\PolarisBank\Interfaces\BankTransactionInterface;
 use Glocurrency\PolarisBank\Client;
 
-class FetchDomesticTransactionStatusRawTest extends TestCase
+class FetchTransactionStatusRawTest extends TestCase
 {
     private string $apiKey = 'api-key';
     private string $clientSecret = 'secure-token';
+    private string $requestRef = 'request_ref';
     private string $signature = 'signature';
+
+    public function generateSignature(): string
+    {
+        $signature = md5($this->requestRef . ';' . $this->clientSecret);
+        return $signature;
+    }
 
     /** @test */
     public function it_can_prepare_request(): void
@@ -22,11 +29,17 @@ class FetchDomesticTransactionStatusRawTest extends TestCase
         /** @var BankTransactionInterface $transaction */
         $transaction = $this->getMockBuilder(BankTransactionInterface::class)->getMock();
 
+        $mockedDisbursmentTest = $this->getMockBuilder(DisbursmentTest::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+        $mockedDisbursmentTest->method('generateSignature')
+            ->willReturn($this->signature);
+
         $mockedConfig = $this->getMockBuilder(ConfigInterface::class)->getMock();
         $mockedConfig->method('getApiBaseUrl')->willReturn('https://api.example/');
         $mockedConfig->method('getApiKey')->willReturn($this->apiKey);
         $mockedConfig->method('getClientSecret')->willReturn($this->clientSecret);
-        $mockedConfig->method('getSignature')->willReturn($this->signature);
+        $mockedConfig->method('getSignature')->willReturn((string) $this->signature);
 
         $mockedResponse = $this->getMockBuilder(ResponseInterface::class)->getMock();
         $mockedResponse->method('getStatusCode')->willReturn(200);
@@ -48,6 +61,8 @@ class FetchDomesticTransactionStatusRawTest extends TestCase
                 "success": "Transaction processed successfully",
             }');
 
+        $signature = $mockedDisbursmentTest->generateSignature();
+
         /** @var \Mockery\MockInterface $mockedClient */
         $mockedClient = \Mockery::mock(\GuzzleHttp\Client::class);
         $mockedClient->shouldReceive('request')->withArgs([
@@ -57,7 +72,7 @@ class FetchDomesticTransactionStatusRawTest extends TestCase
                 \GuzzleHttp\RequestOptions::HEADERS => [
                     'Accept' => 'application/json',
                     'Authorization' => "Bearer {$this->clientSecret}",
-                    'Signature' => $this->signature,
+                    'Signature' => $signature,
                 ],
                 \GuzzleHttp\RequestOptions::JSON => [
                     "request_ref" => $transaction->getRequestRef(),
