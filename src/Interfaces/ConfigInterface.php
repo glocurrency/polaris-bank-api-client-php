@@ -8,8 +8,7 @@ namespace Glocurrency\PolarisBank\Interfaces;
 
  interface ConfigInterface
 {
-    public function getApiBaseUrl(): string;
-    public function getApiKey(): string;
+    public function getBaseUrl(): string;
+    public function getKey(): string;
     public function getClientSecret(): string;
-    public function getSignature(): string;
 }

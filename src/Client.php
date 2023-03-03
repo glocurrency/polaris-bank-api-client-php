@@ -27,7 +27,6 @@ class Client implements HttpClientInterface
     protected $config;
     protected $httpClient;
     protected $cache;
-    protected $bankTransaction;
     
     private int $ttlMarginInSeconds = 60;
 
@@ -51,7 +50,6 @@ class Client implements HttpClientInterface
     /** @link https://docs.openbanking.vulte.ng/#b3f5f0aa-e4ff-4719-bc29-65230e92ea3d */
     public function sendTransaction(BankTransactionInterface $bankTransaction): TransactionResponse
     {
-        // $this->bankTransaction = $bankTransaction;
 
         if($bankTransaction instanceof SourceModelInterface){
             $this->setSourceModel($bankTransaction);
@@ -84,48 +82,33 @@ class Client implements HttpClientInterface
             ]
         ];
 
-        // $requestRef = $this->bankTransaction->getRequestRef();
-
-        $response = $this->performRequest(HttpMethodEnum::POST, 'v1/transact', $data);
+        $response = $this->performRequest(HttpMethodEnum::POST, 'v1/transact', $data, $bankTransaction->getRequestRef());
         return new TransactionResponse($response);
-    }
-
-    public function generateSignature(BankTransactionInterface $bankTransaction, ConfigInterface $config): string
-    {
-        $this->bankTransaction = $bankTransaction;
-        $reqRef = $bankTransaction->getRequestRef();
-        $clientRef = $config->getClientSecret();
-    
-        $signature = md5($reqRef . ';' . $clientRef);
-        return $signature;
     }
 
      /**
      * @param HttpMethodEnum $method
      * @param string $uri
      * @param array<mixed> $data
+     * @param string reference
      * @return ResponseInterface
      */
-    private function performRequest(HttpMethodEnum $method, string $uri, array $data): ResponseInterface
+    private function performRequest(HttpMethodEnum $method, string $uri, array $data, string $requestRef): ResponseInterface
     {        
-        $signature = $this->generateSignature($this->bankTransaction->getRequestRef(), $this->config->getClientSecret());
-
         $options = [
             \GuzzleHttp\RequestOptions::HEADERS => [
                 'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . $this->config->getClientSecret(),
-                'Signature' => $signature
+                'Authorization' => 'Bearer ' . $this->config->getKey(),
+                'Signature' => md5($requestRef . ";" . $this->config->getClientSecret())
             ],
             \GuzzleHttp\RequestOptions::JSON => $data,
         ];
-
-        // $data['getRequestRef'] = $getRequestRef;
 
         if ($this->getSourceModel()) {
             $options[\BrokeYourBike\HasSourceModel\Enums\RequestOptions::SOURCE_MODEL] = $this->getSourceModel();
         }
 
-        $uri = (string) $this->resolveUriFor($this->config->getApiBaseUrl(), $uri);
+        $uri = (string) $this->resolveUriFor($this->config->getBaseUrl(), $uri);
         return $this->httpClient->request($method->value, $uri, $options);
     }
 }
