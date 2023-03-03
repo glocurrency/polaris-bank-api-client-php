@@ -113,7 +113,6 @@ class sendTransactionTest extends TestCase
         $requestResult = $api->sendTransaction($transaction);
 
         $this->assertInstanceOf(TransactionResponse::class, $requestResult);
-        // $this->assertSame(null, $requestResult->transactionErrors);
     }
 
     /** @test */
