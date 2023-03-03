@@ -27,7 +27,6 @@ class ClientTest extends TestCase
 
         $this->assertInstanceOf(HttpClientInterface::class, $api);
         $this->assertSame($mockedConfig, $api->getConfig());
-        $this->assertSame($mockedCache, $api->getCache());
     }
 
     /** @test */

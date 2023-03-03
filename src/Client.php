@@ -9,7 +9,6 @@ use BrokeYourBike\HasSourceModel\HasSourceModelTrait;
 use BrokeYourBike\HasSourceModel\SourceModelInterface;
 use BrokeYourBike\ResolveUri\ResolveUriTrait;
 use Glocurrency\PolarisBank\Interfaces\ConfigInterface;
-use Glocurrency\PolarisBank\Models\FetchAccountBalanceResponse;
 use Glocurrency\PolarisBank\Models\FetchBankAccountNameResponse;
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -26,25 +25,18 @@ class Client implements HttpClientInterface
 
     protected $config;
     protected $httpClient;
-    protected $cache;
     
     private int $ttlMarginInSeconds = 60;
 
-    public function __construct(ConfigInterface $config, ClientInterface $httpClient, CacheInterface $cache)
+    public function __construct(ConfigInterface $config, ClientInterface $httpClient)
     {
         $this->config = $config;
         $this->httpClient = $httpClient;
-        $this->cache = $cache;
     }
 
     public function getConfig(): ConfigInterface
     {
         return $this->config;
-    }
-
-    public function getCache(): CacheInterface
-    {
-        return $this->cache;
     }
 
     /** @link https://docs.openbanking.vulte.ng/#b3f5f0aa-e4ff-4719-bc29-65230e92ea3d */
