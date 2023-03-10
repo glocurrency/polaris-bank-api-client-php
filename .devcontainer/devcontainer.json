@@ -1,0 +1,20 @@
+{
+    "name": "polaris-bank-api-client",
+    "dockerComposeFile": "docker-compose.yml",
+    "service": "app",
+    "workspaceFolder": "/workspace",
+    "forwardPorts": [8000, 8080, 3306, 6379],
+    "remoteUser": "vscode",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "bmewburn.vscode-intelephense-client",
+                "calebporzio.better-phpunit",
+                "EditorConfig.EditorConfig",
+                "neilbrayfield.php-docblocker",
+                "MehediDracula.php-namespace-resolver",
+                "GitHub.copilot"
+            ]
+        }
+    }
+}
