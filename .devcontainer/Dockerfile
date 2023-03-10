@@ -3,7 +3,8 @@ FROM mcr.microsoft.com/vscode/devcontainers/php:${VARIANT}
 
 RUN apt-get update && apt-get install -y \
     libzip-dev \
-    libxml2-dev
+    libxml2-dev \
+    libmcrypt-dev
 
 # Install php extensions
 RUN docker-php-ext-install \
@@ -13,6 +14,9 @@ RUN docker-php-ext-install \
     zip \
     bcmath \
     pcntl
+
+RUN pecl install mcrypt-1.0.6 \
+    && docker-php-ext-enable mcrypt
 
 # disable xdebug
 RUN rm -f /usr/local/etc/php/conf.d/xdebug.ini
