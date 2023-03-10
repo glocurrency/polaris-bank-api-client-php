@@ -44,6 +44,7 @@ class Client implements HttpClientInterface
         return $this->config;
     }
 
+    /** @link https://docs.openbanking.vulte.ng/#65802ea5-bf82-499b-8cde-f7463724aaea */
     public function disburse(string $requestReference, TransactionInterface $transaction): TransactionResponse
     {
         if ($transaction instanceof SourceModelInterface){
@@ -78,6 +79,7 @@ class Client implements HttpClientInterface
         return new TransactionResponse($response);
     }
 
+    /** @link https://docs.openbanking.vulte.ng/#d6897e92-e417-49af-a52b-b3fb1e731c0f */
     public function queryTransaction(string $requestReference, TransactionInterface $transaction): QueryTransactionResponse
     {
         if ($transaction instanceof SourceModelInterface){
@@ -99,6 +101,7 @@ class Client implements HttpClientInterface
         return new QueryTransactionResponse($response);
     }
 
+    /** @link https://docs.openbanking.vulte.ng/#a677e46d-4d2d-475a-b609-49649c3125ca */
     public function lookupTransactionAccount(string $requestReference, TransactionInterface $transaction): LookupAccountResponse
     {
         $data = [
@@ -122,6 +125,7 @@ class Client implements HttpClientInterface
         return new LookupAccountResponse($response);
     }
 
+    /** @link https://docs.openbanking.vulte.ng/#encryption-of-secure-element */
     public function encryptData(string $data): string
     {
         $source = \mb_convert_encoding($this->config->getSecret(), 'UTF-16LE', 'UTF-8');
